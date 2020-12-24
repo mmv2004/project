@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+<style type="text/css">
+	input {
+		width : 35px;
+	}
+
+	.V {
+		background-color: #90ee90;
+	}
+
+	.Selected {
+		background-color: #ffa500;
+
+	}
+
+	td {
+		border: solid gray 1px;
+		text-align: center;
+	}
+
+	table {
+		border: solid black 1px;
+		border-collapse: collapse;
+	}
+
+</style>
+
+<script type="text/javascript">
+	var res = [];
+	function isV1(cells){
+		var k = 0;
+		for (i=0;i<cells.length;i++){
+			if (cells[i] == "!"){ k++; break; }
+		}
+		if (k != 0){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+
+	function isP1(cells){
+		var k = 0;
+		for (i=0;i<cells.length;i++){
+			if (cells[i] == V+"1"){ k++; }
+		}
+		if (k == 4){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function isV2(cells){
+		var k = 0;
+		for (i=0;i<cells.length;i++){
+			if (cells[i] == P+"1"){ 
+				k++; 
+				break;
+			}
+		}
+		if (k != 0){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function isP2(cells){
+	var k = 0;
+		for (i=0;i<cells.length;i++){
+			if (cells[i] == P+"2"){ 
+				k++; 
+				break;
+			}
+		}
+		if (k != 0){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function isV(cells){
+		var k = 0;
+		for (i=0;i<cells.length;i++){
+			if (cells[i][0] == P){ 
+				k++; 
+				break;
+			}
+		}
+		if (k != 0){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	function getValue(r,c,res){
+		if (Number(r)+Number(c) >= Number(vi)){
+			if (r < res.length && c < res[r].length){
+				res[r][c] = "!";
+			}
+			return "!"
+		}
+		else{
+			if (res[r][c] == "?"){
+				var one_move_cells = [getValue(Number(r)+Number(p),c,res), getValue(r,Number(c)+Number(p),res),getValue(+r*m,c,res),getValue(r,+c*m,res)];
+				if      (isV1(one_move_cells)){ res[r][c] = V+"1";}
+				else if (isP1(one_move_cells)){ res[r][c] = P+"1";}
+				else if (isV2(one_move_cells)){ res[r][c] = V+"2";}
+				else if (isP2(one_move_cells)){ res[r][c] = P+"2";}
+				else if (isV(one_move_cells)){ res[r][c] = V;}
+				else  res[r][c] = P;	
+			}
+
+				
+		}
+		return res[r][c];
+	}
+
+	function getPath(r,c,res){ // для построение дерева, а не для расчетов
+
+	}
+
+	function select(rr,cc){
+		//alert(r);
+		//alert(c);
+		var tb = document.getElementById("table");
+		for(r=0;r<tb.rows.length;r++){
+			for(c=0;c<tb.rows[r].cells.length;c++){
+				tb.rows[r].cells[c].classList.remove("Selected");
+			}
+		}
+
+		tb.rows[rr].cells[cc].classList.add("Selected");
+		var heap_1 = tb.rows[0].cells[cc].innerText;
+		var heap_2 = tb.rows[rr].cells[0].innerText;
+
+		r = Number(rr) + Number(p);
+		if (r > tb.rows.length-1){
+			r = tb.rows.length-1;
+		}
+		c = cc;
+		tb.rows[r].cells[c].classList.add("Selected");
+
+		r = rr;
+		c = Number(cc) + Number(p);
+		if (c > tb.rows[r].cells.length-1){
+			c = tb.rows[r].cells.length-1;
+		}
+		tb.rows[r].cells[c].classList.add("Selected");
+
+		var new_c;
+		for (c=cc;c<tb.rows[0].cells.length;c++){
+			new_c = c;
+			if (tb.rows[0].cells[c].innerText == heap_1*m){
+				break;
+			}
+		}
+		tb.rows[r].cells[new_c].classList.add("Selected");
+
+		var new_r;
+		for (r=rr;r<tb.rows.length;r++){
+			new_r = r;
+			if (tb.rows[r].cells[0].innerText == heap_2*m){
+				break;
+			}
+		}
+		tb.rows[new_r].cells[cc].classList.add("Selected");
+
+	}
+
+
+	function solve(this_form){
+		
+		p = this_form.p.value;
+		m = this_form.m.value;
+		start_r = this_form.start_r.value;
+		start_c = this_form.start_c.value;
+		vi = this_form.victory.value;
+		end_r = vi-start_c+1;
+		end_c = vi-start_r+1;
+		V = this_form.V.value;
+		P = this_form.P.value;
+
+
+		res = [];
+		for(r=start_r;r<end_r;r++){
+			res[r] = [];
+			for(c=start_c;c<end_c;c++){
+				res[r][c] = "?";
+			}
+		}
+
+		for(r=start_r;r<end_r;r++){
+			for(c=start_c;c<end_c;c++){
+				getValue(r,c,res);
+			}
+		}
+
+		var print = document.getElementById("res");
+		var output = "";
+		output += '<table id = "table">';
+		output +='<TH>';
+
+		for (c=start_c;c<end_c;c++){
+			output +='<TD>';
+			output +=c;
+			output +='</TD>';
+			output +='</TH>';
+		}
+
+		for (r=start_r;r<end_r;r++){
+			output +='<TR>';
+			output +='<TD>';
+			output += r;
+			output +='</TD>';
+			for (c=start_c;c<end_c;c++){
+				var cl = "";
+				if (res[r][c][0]==V){
+					cl = "V";
+				}
+				
+				output +='<TD class = "' + cl + '"';
+				output += ' onclick="select(this.parentNode.rowIndex,this.cellIndex)">'
+				
+				
+				output += res[r][c];
+				output +='</TD>';
+			}
+			output +='</TR>';	
+		}
+		output +='</table>';
+		print.innerHTML = output;
+
+	}
+</script>
+
+<form>
+<p>
+<strong>Пример</strong>
+Два игрока, Петя и Ваня, играют в следующую игру. Перед игроками лежат две кучи камней. Игроки ходят по очереди, первый ход делает Петя. За один ход игрок может 
+а) добавить в одну из куч (по своему выбору) два камня или 
+б) увеличить количество камней в куче в три раза. 
+Победителем считается игрок, сделавший последний ход, т.е. первым получивший такую позицию, что в обеих кучах всего будет 48 камней или больше.<BR>
+Задание 1. Для каждой из начальных позиций (5, 14), (7, 13) укажите, кто из игроков имеет выигрышную стратегию. <BR>
+Задание 2. Для каждой из начальных позиций (5, 13), (6,13), (7,11) укажите, кто из игроков имеет выигрышную стратегию. <BR>
+Задание 3. Для начальной позиции (6,12) укажите, кто из игроков имеет выигрышную стратегию. Постройте дерево всех партий, возможных при указанной выигрышной стратегии.
+</p>
+	<p>
+		1 куча <input type="text" name = "start_r" value = "5"/>
+		2 куча <input type="text" name = "start_c" value = "11"/>
+		Для победы <input type="text" name = "victory" value = "48"/>
+	</p>
+
+	<p> 
+		За ход:<br>
+		добавить <input type="text" name = "p" value = "2"/> 
+		или 
+		увеличить в <input type="text" name = "m" value = "3"/> 
+	</p>
+	<p>
+		Отображение для клетки с выигрышной стратегией	<input name = "V" type="text" value="+"></input>
+		Отображение для клетки с проигрышной стратегией	<input name = "P" type="text" value="-"></input>	
+	</p>
+	<input type = "button" value = "Ok" onclick="solve(this.form)">
+</form>
+<div id="res">***</div>
+
+<br>
+<br>
+Власенко Борис, 2016.
+</body>
+</html>

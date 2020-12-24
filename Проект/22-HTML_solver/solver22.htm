@@ -1,0 +1,371 @@
+
+
+
+
+
+<html>
+<head>
+	<title>Решатель 22 задачи в ЕГЭ по информатике</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+</head>
+	<style>
+		
+body {
+    font:  Arial, Helvetica, sans-serif; /* Шрифт на веб-странице */
+   }
+   h2 {
+    font-size: 1.1em; /* Размер шрифта */
+    color: #800040; /* Цвет текста */
+    margin-top: 0; /* Отступ сверху */
+   }
+   #header {
+    font-size: 2.2em; /* Размер текста */
+    text-align: center; /* Выравнивание по центру */
+    padding: 5px; /* Отступы вокруг текста */
+    background: #0ea048; /* Цвет фона шапки */
+    color: #ffe; /* Цвет текста */
+   }
+   #content {
+    margin: 20px;
+    padding: 10px; /* Поля вокруг текста */
+    background: #fff; /* Цвет фона правой колонки */
+   }
+   .footer {
+    background: #8fa09b; /* Цвет фона подвала */
+    color: #fff; /* Цвет текста */
+    padding: 5px; /* Отступы вокруг текста */
+   }
+
+		
+	.good {
+		background: #90EE90;
+	}
+	.bad {
+		background: #FFC0CB;
+	}
+	.none {
+	}
+	.hidden{
+		display: none;
+	}
+	
+	.integer {
+		width: 70px;
+	}
+	.label {
+		width: 220px;
+		background: #E5E5E5;
+		display:inline-block;
+		padding:2px;
+		margin:2px;
+		
+	}
+	
+	.left {
+		
+	}
+	.right {
+		
+	}
+		
+	</style>
+	
+	<script>
+		
+		var start_value;
+		var finish_value;
+		var res;
+		var path;
+		var dx = 1; 
+		
+		function div(val, by){
+			return (val - val % by) / by;
+		}		
+		
+		function inc_all(x){
+			var res = 0;
+			var t = 1;
+			while (x > 0){
+				var d = x % 10;
+				if (d < 9) d++;
+				res += t*d;
+				t *= 10;
+				x = div(x,10);
+			}
+			return res;
+		}
+		
+		function inc(x,z){
+			var res = 0;
+			var t = 1;
+			var k = 0;
+			while (x > 0){
+				var d = x % 10;
+				if ((k == z) && (d < 9)) d++;
+				res += t*d;
+				t *= 10;
+				x = div(x,10);
+				k++;
+			}
+			return res;
+		}
+		
+		function test_command(){
+	        var actions = [];
+		    for (var row of document.getElementById('commands_for_test').value.split("\n")){
+			   row = row.trim();
+			   if (row != '') {
+					var action = new Function('x', 'return ' + row + ';');
+					actions[actions.length] = action;
+			   }
+		    }
+		    
+			var x = +document.getElementById('value_for_test_commands').value;
+			var result_test_commands = document.getElementById('result_test_commands');
+			result_test_commands.value = '';
+			for (action of actions){
+				result_test_commands.value += action(x) + '\n';
+				
+			}
+			
+			
+				
+		}
+		
+		function check(){
+			//~ перебрать все ячейки. Пустые сделать белыми, правильные - зелеными, неправильные - красными
+			for (var x = start_value; x_not_finish(x,finish_value); x += dx){
+				var cell = document.getElementById(x);
+				cell.classList.remove('good','bad','none');
+				if (cell.value == '') cell.classList.add('none')
+				else
+					if (cell.value == res[x]) cell.classList.add('good')
+					else cell.classList.add('bad')
+
+			}
+		}
+		
+		function show_answer(){
+			for (var x = start_value; x_not_finish(x,finish_value); x += dx){
+				show_cell(x);
+			}
+		}
+		
+		function show_cell(x){
+			var cell = document.getElementById(x);
+			cell.classList.remove('good','bad','none');
+			cell.value = res[x];
+			var path_td = document.getElementById('path'+x);
+			path_td.innerHTML = path[x];
+			
+		}
+		function x_not_finish(x,finish_value){
+			if (dx > 0) {
+				return x <= finish_value;
+			}
+			else{
+				return x >= finish_value;
+			}
+		}
+		
+		function test(this_form){
+			result = document.getElementById("result");
+			result.innerHTML = "вычисляю..."
+			res = [];
+			path = [];
+			start_value = +document.getElementById("start_value").value;
+			finish_value = +document.getElementById("finish_value").value;
+			if (finish_value < start_value) dx = -1;
+			
+			var exclude_values = [];
+			for (item of document.getElementById("exclude_values").value.split(" ")){
+				exclude_values[exclude_values.length] = +item;
+			}
+			var include_values = [];
+			for (item of document.getElementById("include_values").value.split(" ")){
+				include_values[include_values.length] = +item;
+			}
+	        var actions = [];
+		    for (var row of this_form['actions'].value.split("\n")){
+			   row = row.trim();
+			   if (row != '') {
+					var action = new Function('x', 'return ' + row + ';');
+					actions[actions.length] = action;
+			   }
+		    }
+	        path[start_value] = '';
+	        for (var x = start_value; x_not_finish(x,finish_value); x += dx){
+				res[x] = 0;
+				path[x] = [];
+				}
+	        res[start_value] = 1;
+
+			var x = start_value;
+			var work = true;
+			while (work) {
+				work = false;
+				for (var action of actions){
+					var next_x = action(x);
+
+					if (x_not_finish(next_x,finish_value)) {
+						var ok = true;
+						for (var inc of include_values){
+							if ((x < inc) && (next_x > inc) || (x > inc) && (next_x < inc)) ok = false;
+						}
+						
+						if (ok) {
+							res[next_x] += res[x];
+							path[next_x][path[next_x].length] = x;
+						}
+						work = true;
+						for (ex of exclude_values){
+							if (next_x == ex) res[next_x] = 0;
+						}
+					}
+					
+				}
+				x += dx;
+			}
+			
+			//~ построить полную таблицу
+			//~ result = document.getElementById("result"); 
+			//~ result.innerHTML = '';
+			//~ var path_str = '';
+			//~ for (var x = start_value; x <= finish_value; x++){
+				//~ if (path[x]){
+					//~ path_str = path[x].join(' + ') + ' = ';
+				//~ }
+				//~ result.innerHTML += x + ': ' + path_str + res[x] + '<br>';
+			//~ }
+			
+			//~ построить таблицу для ввода ответов с проверкой
+			
+			result_str = '<table>';
+			var path_str = '';
+			for (var x = start_value; x_not_finish(x,finish_value); x += dx){
+				if (path[x]){
+					path_str = path[x].join(' + ') + ' = ';
+				}
+				//~ result.innerHTML += x + ': ' + path_str + res[x] + '<br>';
+				result_str += '<tr>'
+					result_str += '<td>' + x + '</td>';
+					result_str += '<td>'
+						result_str += '<input type="text" id=' + x + ' onchange=check();>'
+					result_str += '</td>'
+					result_str += '<td id="path'+x+'">'
+						result_str += '<span onclick="show_cell(' + x + ')">?</span>'
+					result_str += '</td>'
+
+				result_str += '</tr>'
+			}
+			result_str += '</table>';
+			result.innerHTML = result_str;
+			document.getElementById('show_answr_button').classList.remove('hidden');
+			
+		}
+	</script>
+
+<body>
+		
+	<div id="header"><p style="text-align:right;font-style:italic;margin:0;font-size:50%;">Б. Власенко</p>
+        Форма для пошаговой проверки решения задания 22 ЕГЭ по информатике</div>
+	<div id="content">
+	<form>
+	<div>
+		<label class="label" for="actions" >Использовать команды</label>
+		<textarea id="actions" rows = "5" style="vertical-align: middle; width: 70px;">
+x+1 
+x*2
+x*3
+		</textarea>
+		Каждая команда в отдельной строке. Примеры команд в нижней части страницы
+		<br>
+		<label class="label" for="start_value">Начальное значение</label>
+		<input class = "integer" type ="text" value="5" id="start_value"> 
+		От большего к меньшему или от меньшего к большему
+		<br>
+		<label class="label" for="finish_value">Конечное значение</label>
+		<input class = "integer" type ="text" value="52" id="finish_value"> <br>
+		
+		<label class="label" for="include_values">Содержит</label>
+		<input class = "integer" type ="text" value="15" id="include_values"> 
+		Может быть пустыми, содержать одно значение или несколько значений, разделенных запятой
+		<br>
+
+		<label class="label" for="exclude_values">Не содержит</label>
+		<input class = "integer" type = "text" value="29" id="exclude_values"> 
+		Может быть пустыми, содержать одно значение или несколько значений, разделенных запятой
+		<br>
+		<input type="button" onclick="test(this.form)" value="Создать форму"> 
+		<input id="show_answr_button" class="hidden" type="button" onclick="show_answer(this.form)" value="Показать ответ">
+	</form>
+	</div>
+<div class="footer"></div>
+<div id="result">
+</div>
+
+<div>
+
+<div class="footer"></div>
+
+<h3>
+Примеры команд:
+</h3>
+<ol>
+<li>Увеличить на 2: x+2</li>
+<li>Увеличить на 10: x+10</li>
+<li>Сделать четным: 2*x</li>
+<li>Сделать нечетным:  2*x+1</li>
+<li>Разделить на три нацело: div(x , 3)</li>
+<li>Прибавь предыдущее: x+x-1</li>
+<li>Увеличить разряды на 1 (без перехода через 9): 
+<pre>
+inc_all(x)
+inc_all(23) = 34
+inc_all(29) = 39
+inc_all(99) = 99
+</pre>
+</li>
+
+<li>Увеличить разряд единиц на 1 (без перехода через 9): inc(x,0)
+<pre>
+inc(12,0) = 13
+inc(19,0) = 19
+</pre>
+</li>
+
+<li>Увеличить разряд десятков на 1 (без перехода через 9): inc(x,1)
+<pre>
+inc(12,1) = 22
+inc(19,1) = 29
+inc(92,1) = 92
+</pre>
+</li>
+</ol>
+
+
+</div>
+<h3>Проверить работу команд: </h3>
+Значение<br> <input id="value_for_test_commands" type="text" value = "123"><br>
+Команды<br> <textarea id="commands_for_test" rows = "10" cols = "25">
+x+2
+x-3
+2*x
+2*x+1
+div(x,3)
+inc_all(x)
+inc(x,0)
+inc(x,1)
+inc(x,2)
+</textarea>
+<textarea id="result_test_commands" rows = "10" cols = "25">
+</textarea>
+<br>
+<input type="button" onclick = "test_command()" value="test"><br>
+<div id="result_of_test_command">
+</div>
+<br>
+<div class="footer"></div>
+
+</body>
+</html>
