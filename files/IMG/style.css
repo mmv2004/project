@@ -1,0 +1,33 @@
+body{
+	background: url('./images/back.jpg');
+	color: white;
+}
+.name{
+	font-weight: bold;
+	font-style: italic;
+	color:red;
+}
+.block {
+	overflow: auto;
+
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: none;
+}
+
+.leftgrup {
+	width: 170px;
+	margin: 10px;
+	float: left;
+}
+
+.rightgrup {
+	width: 170px;
+	margin: 10px;
+	float: right;
+}
